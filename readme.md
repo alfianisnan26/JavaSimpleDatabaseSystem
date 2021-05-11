@@ -14,3 +14,6 @@ Aplikasi untuk implementasi materi GUI, Exception, dan Pemograman Dasar dalam Pe
 - Run by runApp.bat
 - batch command `cd out\production\DataList\` then `java LaporanAdministrasi`
 - Load to Intellij IDE
+
+### Git
+https://github.com/alfianisnan26/JavaSimpleDatabaseSystem
