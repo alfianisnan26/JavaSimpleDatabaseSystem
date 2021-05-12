@@ -101,15 +101,13 @@ public class DataKaryawan {
     }
 
     public static void deleteByUser(String email, char[] passchar) throws DataKaryawan.UserNotFoundException{
-        if(!database.removeIf(fill -> {
-            return fill.getEmail().equals(email) && fill.getPassHash().equals(digest(String.valueOf(passchar)));
-        })) throw new DataKaryawan.UserNotFoundException(email);
+        if(!database.removeIf(fill -> fill.getEmail().equals(email) && fill.getPassHash().equals(digest(String.valueOf(passchar))))) throw new DataKaryawan.UserNotFoundException(email);
     }
 
     public static void updateByUser(String email, char[] passchar, String newnama, String newtanggalMasuk, String newJamMasuk, String newJamKeluar, String newcomment, String newemail, char[] newpasschar) throws DataKaryawan.UserNotFoundException, DataKaryawan.EmailAlreadyExistsException, DataKaryawan.Validator.EmailInvalidException, DataKaryawan.Validator.PasswordInvalidException, Validator.TimeValueInvalidException, DataCannotNullException, Validator.DateValueInvalidException {
-        DataKaryawan ds = null;
+        DataKaryawan ds;
         try{
-            ds = database.stream().filter(fill -> fill.getEmail().equals(email) && fill.getPassHash().equals(digest(String.valueOf(passchar)))).findFirst().get();
+            ds = database.stream().filter(fill -> fill.getEmail().equals(email) && fill.getPassHash().equals(digest(String.valueOf(passchar)))).findAny().get();
         }catch(NoSuchElementException e){
             throw new DataKaryawan.UserNotFoundException("On Update By User : " + email);
         }
@@ -126,7 +124,7 @@ public class DataKaryawan {
 
     }
 
-    public static List<DataKaryawan> database = new ArrayList<DataKaryawan>();
+    public static List<DataKaryawan> database = new ArrayList<>();
     private static int globalID = 0;
 
     private int id;
@@ -143,11 +141,11 @@ public class DataKaryawan {
             MessageDigest md = MessageDigest.getInstance("SHA-1");
             byte[] messageDigest = md.digest(pass.getBytes());
             BigInteger no = new BigInteger(1, messageDigest);
-            String hashtext = no.toString(16);
+            StringBuilder hashtext = new StringBuilder(no.toString(16));
             while (hashtext.length() < 32) {
-                hashtext = "0" + hashtext;
+                hashtext.insert(0, "0");
             }
-            return hashtext;
+            return hashtext.toString();
         }
         catch (NoSuchAlgorithmException e) {
             throw new RuntimeException(e);
@@ -194,7 +192,7 @@ public class DataKaryawan {
 
     public void setEmail(String email) throws DataKaryawan.EmailAlreadyExistsException, DataKaryawan.Validator.EmailInvalidException {
         if(!Validator.emailIsValid(email)) throw new DataKaryawan.Validator.EmailInvalidException("Error on Set - " + nama);
-        if(database.stream().anyMatch(p -> p.getEmail() == email)) throw new DataKaryawan.EmailAlreadyExistsException("Error on Set - " + nama);
+        if(database.stream().anyMatch(p -> p.getEmail().equals(email))) throw new DataKaryawan.EmailAlreadyExistsException("Error on Set - " + nama);
         this.email = email;
     }
 
@@ -213,7 +211,7 @@ public class DataKaryawan {
     public void setJamKeluar(String jamKeluar) throws Validator.TimeValueInvalidException, DataCannotNullException {
         if(jamKeluar == null || jamKeluar.equals("")) throw new DataKaryawan.DataCannotNullException("Jam Pulang Kosong");
         if(!Validator.timeIsValid(jamKeluar)) throw new DataKaryawan.Validator.TimeValueInvalidException("Error on Set - " + nama);
-        this.jamMasuk = jamMasuk;
+        this.jamKeluar = jamKeluar;
     }
 
     public void setNama(String nama) throws DataCannotNullException {
